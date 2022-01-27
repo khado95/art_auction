@@ -1,0 +1,10 @@
+/Users/trietnguyen/Documents/Blockchain Development/NEAR_JAN_2022/art_auction/contract/target/release/deps/version_check-11dbe40edd9aa2ec.rmeta: /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/lib.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/version.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/channel.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/date.rs
+
+/Users/trietnguyen/Documents/Blockchain Development/NEAR_JAN_2022/art_auction/contract/target/release/deps/libversion_check-11dbe40edd9aa2ec.rlib: /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/lib.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/version.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/channel.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/date.rs
+
+/Users/trietnguyen/Documents/Blockchain Development/NEAR_JAN_2022/art_auction/contract/target/release/deps/version_check-11dbe40edd9aa2ec.d: /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/lib.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/version.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/channel.rs /Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/date.rs
+
+/Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/lib.rs:
+/Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/version.rs:
+/Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/channel.rs:
+/Users/trietnguyen/.cargo/registry/src/github.com-1ecc6299db9ec823/version_check-0.9.3/src/date.rs:
