@@ -45,7 +45,7 @@ impl AuctionSystem {
         assert_eq!(
             env::attached_deposit(),
             MINT_NFT,
-            "Require 0.1N to mint NFT"
+            "Require 0.2N to mint NFT"
         );
 
         let owner = ValidAccountId::try_from(env::predecessor_account_id()).unwrap();
