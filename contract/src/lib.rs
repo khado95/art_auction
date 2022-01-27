@@ -3,7 +3,7 @@ use near_contract_standards::non_fungible_token::core::NonFungibleTokenCore;
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{LookupMap, UnorderedSet, Vector};
+use near_sdk::collections::{LookupMap, UnorderedSet};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
@@ -13,9 +13,9 @@ use near_sdk::{
 pub use crate::types::*;
 pub mod types;
 
-const MINT_FEE: Balance = 1_000_000_000_000_000_000_000_00; // 0.1 NEAR
-const CREATE_AUCTION_FEE: Balance = 1_000_000_000_000_000_000_000_000; // 1 NEAR
-const ENROLL_FEE: Balance = 1_000_000_000_000_000_000_000_00; // 0.1 NEAR
+const MINT_NFT: Balance = 2_000_000_000_000_000_000_000_00; // 0.2 NEAR
+const JOIN_AS_AN_AUCTION_CREATOR: Balance = 1_500_000_000_000_000_000_000_000; // 1.5 NEAR
+const ENROLL: Balance = 1_000_000_000_000_000_000_000_00; // 0.1 NEAR
 
 #[near_bindgen]
 impl AuctionSystem {
@@ -31,8 +31,8 @@ impl AuctionSystem {
                 Some(StorageKey::Enumeration),
                 Some(StorageKey::Approval),
             ),
-            total_auctions: 0,
-            auction_by_id: LookupMap::new(b"auction_by_id".to_vec()), //
+            num_auctions: 0,
+            auctions_mapping: LookupMap::new(b"auctions_mapping".to_vec()), //
             auctioned_tokens: UnorderedSet::new(b"is_token_auctioned".to_vec()),
         }
     }
@@ -44,12 +44,11 @@ impl AuctionSystem {
     ) -> Token {
         assert_eq!(
             env::attached_deposit(),
-            MINT_FEE,
+            MINT_NFT,
             "Require 0.1N to mint NFT"
         );
 
         let owner = ValidAccountId::try_from(env::predecessor_account_id()).unwrap();
-
         self.tokens.mint(id, owner, metadata)
     }
 
@@ -58,6 +57,13 @@ impl AuctionSystem {
         id: TokenId
         ) -> Option<Token> {
         self.tokens.nft_token(id)
+    }
+
+    pub fn get_auction(
+        &self, 
+        auction_id: usize
+        ) -> Auction {
+        self.auctions_mapping.get(&auction_id).unwrap()
     }
 
     #[payable]
@@ -82,7 +88,7 @@ impl AuctionSystem {
 
         assert_eq!(
             env::attached_deposit(),
-            CREATE_AUCTION_FEE,
+            JOIN_AS_AN_AUCTION_CREATOR,
             "Require 1N to create an auction"
         );
 
@@ -96,18 +102,19 @@ impl AuctionSystem {
 
         let auction = Auction {
             owner: owner_id,
-            auction_id: self.total_auctions,
+            auction_id: self.num_auctions,
             auction_token: art_id.clone(),
             start_price,
-            start_time * 1_000_000_000,
+            start_time: env::block_timestamp(),
+            end_time: env::block_timestamp() + duration * 1_000_000_000,
             current_price: start_price,
             winner: String::new(),
             is_near_claimed: false,
             is_nft_claimed: false,
         };
-        self.auction_by_id.insert(&self.total_auctions, &auction);
+        self.auctions_mapping.insert(&self.num_auctions, &auction);
         self.auctioned_tokens.insert(&art_id);
-        self.total_auctions += 1;
+        self.num_auctions += 1;
         auction
     }
 
@@ -116,7 +123,7 @@ impl AuctionSystem {
         &mut self, 
         auction_id: usize 
         ) {
-        let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
+        let mut auction = self.auctions_mapping.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
 
@@ -138,14 +145,15 @@ impl AuctionSystem {
             "Price must be greater than current winner's price"
         );
 
+        //Refund to previous winner
         if !(auction.winner == String::new()) {
             let old_winner = Promise::new(auction.winner);
-            old_winner.transfer(auction.current_price - ENROLL_FEE);
+            old_winner.transfer(auction.current_price - ENROLL);
         }
 
         auction.winner = env::predecessor_account_id();
         auction.current_price = env::attached_deposit();
-        self.auction_by_id.insert(&auction_id, &auction);
+        self.auctions_mapping.insert(&auction_id, &auction);
     }
 
     #[payable]
@@ -153,7 +161,7 @@ impl AuctionSystem {
         &mut self, 
         auction_id: usize
         ) {
-        let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
+        let mut auction = self.auctions_mapping.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
         assert_eq!(
@@ -171,14 +179,16 @@ impl AuctionSystem {
             false,
             "You has already claimed NFT"
         );
+
         self.tokens.internal_transfer_unguarded(
             &auction.auction_token,
             &env::current_account_id(),
             &auction.winner,
         );
+
         auction.is_nft_claimed = true;
         self.auctioned_tokens.remove(&auction.auction_token);
-        self.auction_by_id.insert(&auction_id, &auction);
+        self.auctions_mapping.insert(&auction_id, &auction);
     }
 
     #[payable]
@@ -186,7 +196,7 @@ impl AuctionSystem {
         &mut self, 
         auction_id: usize 
         ) {
-        let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
+        let mut auction = self.auctions_mapping.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
         assert_eq!(
@@ -202,7 +212,7 @@ impl AuctionSystem {
         assert_eq!(auction.is_near_claimed, false, "You has already claimed N");
         Promise::new(auction.clone().owner).transfer(auction.current_price);
         auction.is_near_claimed = true;
-        self.auction_by_id.insert(&auction_id, &auction);
+        self.auctions_mapping.insert(&auction_id, &auction);
     }
 
     #[payable]
@@ -210,7 +220,7 @@ impl AuctionSystem {
         &mut self, 
         auction_id: usize 
         ) {
-        let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
+        let mut auction = self.auctions_mapping.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
         assert_eq!(
@@ -231,16 +241,10 @@ impl AuctionSystem {
         );
         auction.is_nft_claimed = true;
         self.auctioned_tokens.remove(&auction.auction_token);
-        self.auction_by_id.insert(&auction_id, &auction);
-    }
-
-    pub fn get_auction(
-        &self, 
-        auction_id: usize
-        ) -> Auction {
-        self.auction_by_id.get(&auction_id).unwrap()
+        self.auctions_mapping.insert(&auction_id, &auction);
     }
 }
 
 near_contract_standards::impl_non_fungible_token_approval!(AuctionSystem, tokens);
 near_contract_standards::impl_non_fungible_token_enumeration!(AuctionSystem, tokens);
+

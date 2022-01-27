@@ -28,7 +28,8 @@ pub enum StorageKey {
 pub struct AuctionSystem {
     pub owner: AccountId,
     pub tokens: NonFungibleToken,
-    pub total_auctions: usize,
-    pub auction_by_id: LookupMap<usize, Auction>,
+    pub num_auctions: usize,
+    pub auctions_mapping: LookupMap<usize, Auction>,
     pub auctioned_tokens: UnorderedSet<TokenId>,
 }
+
