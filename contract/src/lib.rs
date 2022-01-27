@@ -3,10 +3,8 @@ use near_contract_standards::non_fungible_token::core::NonFungibleTokenCore;
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-
 use near_sdk::collections::{LookupMap, UnorderedSet, Vector};
 use near_sdk::serde::{Deserialize, Serialize};
-
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
     env, near_bindgen, AccountId, Balance, BorshStorageKey, PanicOnDefault, Promise,
@@ -35,7 +33,6 @@ impl AuctionSystem {
             ),
             total_auctions: 0,
             auction_by_id: LookupMap::new(b"auction_by_id".to_vec()), //
-            auctions_by_owner: LookupMap::new(b"auctions_by_owner".to_vec()),
             auctioned_tokens: UnorderedSet::new(b"is_token_auctioned".to_vec()),
         }
     }
@@ -56,32 +53,10 @@ impl AuctionSystem {
         self.tokens.mint(id, owner, metadata)
     }
 
-// #[payable]
-// pub fn nft_transfer(
-// &mut self,
-// receiver_id: ValidAccountId,
-// token_id: TokenId,
-// approval_id: Option<u64>,
-// memo: Option<String>,
-// ) {
-// self.tokens
-// .nft_transfer(receiver_id, token_id, approval_id, memo)
-// }
-
-// #[payable]
-// pub fn nft_transfer_call(
-// &mut self,
-// receiver_id: ValidAccountId,
-// token_id: TokenId,
-// approval_id: Option<u64>,
-// memo: Option<String>,
-// msg: String,
-// ) -> PromiseOrValue<bool> {
-// self.tokens
-// .nft_transfer_call(receiver_id, token_id, approval_id, memo, msg)
-// }
-
-    pub fn get_art(self, id: TokenId) -> Option<Token> {
+    pub fn get_art(
+        self, 
+        id: TokenId
+        ) -> Option<Token> {
         self.tokens.nft_token(id)
     }
 
@@ -120,20 +95,6 @@ impl AuctionSystem {
             None,
         );
 
-        let mut auction_ids: Vector<u128>;
-        if self
-            .auctions_by_owner
-            .get(&env::predecessor_account_id())
-            .is_none()
-        {
-            auction_ids = Vector::new(b"auction_ids".to_vec());
-        } else {
-            auction_ids = self
-                .auctions_by_owner
-                .get(&env::predecessor_account_id())
-                .unwrap();
-        }
-        auction_ids.push(&self.total_auctions);
         let auction = Auction {
             owner: owner_id,
             auction_id: self.total_auctions,
@@ -146,8 +107,6 @@ impl AuctionSystem {
             is_near_claimed: false,
             is_nft_claimed: false,
         };
-        self.auctions_by_owner
-            .insert(&env::predecessor_account_id(), &auction_ids);
         self.auction_by_id.insert(&self.total_auctions, &auction);
         self.auctioned_tokens.insert(&art_id);
         self.total_auctions += 1;
@@ -155,7 +114,10 @@ impl AuctionSystem {
     }
 
     #[payable]
-    pub fn bid(&mut self, auction_id: u128) {
+    pub fn bid(
+        &mut self, 
+        auction_id: usize 
+        ) {
         let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
@@ -189,7 +151,10 @@ impl AuctionSystem {
     }
 
     #[payable]
-    pub fn claim_nft(&mut self, auction_id: u128) {
+    pub fn claim_nft(
+        &mut self, 
+        auction_id: usize
+        ) {
         let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
@@ -219,7 +184,10 @@ impl AuctionSystem {
     }
 
     #[payable]
-    pub fn claim_near(&mut self, auction_id: u128) {
+    pub fn claim_near(
+        &mut self, 
+        auction_id: usize 
+        ) {
         let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
@@ -240,7 +208,10 @@ impl AuctionSystem {
     }
 
     #[payable]
-    pub fn claim_back_nft(&mut self, auction_id: u128) {
+    pub fn claim_back_nft(
+        &mut self, 
+        auction_id: usize 
+        ) {
         let mut auction = self.auction_by_id.get(&auction_id).unwrap_or_else(|| {
             panic!("This auction does not exist");
         });
@@ -265,7 +236,10 @@ impl AuctionSystem {
         self.auction_by_id.insert(&auction_id, &auction);
     }
 
-    pub fn get_auction(&self, auction_id: u128) -> Auction {
+    pub fn get_auction(
+        &self, 
+        auction_id: usize
+        ) -> Auction {
         self.auction_by_id.get(&auction_id).unwrap()
     }
 }

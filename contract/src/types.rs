@@ -4,7 +4,7 @@ use super::*;
 #[serde(crate = "near_sdk::serde")]
 pub struct Auction {
     pub owner: AccountId,
-    pub auction_id: u128,
+    pub auction_id: usize,
     pub auction_token: TokenId,
     pub start_price: Balance,
     pub start_time: u64,
@@ -28,8 +28,7 @@ pub enum StorageKey {
 pub struct AuctionSystem {
     pub owner: AccountId,
     pub tokens: NonFungibleToken,
-    pub total_auctions: u128,
-    pub auction_by_id: LookupMap<u128, Auction>,
-    pub auctions_by_owner: LookupMap<AccountId, Vector<u128>>,
+    pub total_auctions: usize,
+    pub auction_by_id: LookupMap<usize, Auction>,
     pub auctioned_tokens: UnorderedSet<TokenId>,
 }
