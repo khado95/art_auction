@@ -65,8 +65,7 @@ impl AuctionSystem {
         &mut self,
         art_id: TokenId,
         start_price: Balance,
-        start_time: u64,
-        end_time: u64,
+        duration: u64,
     ) -> Auction {
         let owner_id = self.tokens.owner_by_id.get(&art_id).unwrap();
         assert_eq!(
@@ -100,8 +99,7 @@ impl AuctionSystem {
             auction_id: self.total_auctions,
             auction_token: art_id.clone(),
             start_price,
-            start_time: start_time * 1_000_000_000,
-            end_time: end_time * 1_000_000_000,
+            start_time * 1_000_000_000,
             current_price: start_price,
             winner: String::new(),
             is_near_claimed: false,
