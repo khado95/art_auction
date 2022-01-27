@@ -14,10 +14,10 @@ near call $ADD bid '{"auction_id": 0}' --accountId alice_aunction.testnet --amou
 near call $ADD bid '{"auction_id": 0}' --accountId carol_auction.testnet --amount 4
 
 // Alice try to claim NFT 
-near call $ADD claim_nft '{"auction_id": 0}' --accountId alice_aunction.testnet 
+near call $ADD claim_nft '{"auction_id": 0}' --accountId alice_aunction.testnet --depositYocto 1 
 
 // Carol claim his NFT 
-near call $ADD claim_nft '{"auction_id": 0}' --accountId carol_auction.testnet 
+near call $ADD claim_nft '{"auction_id": 0}' --accountId carol_auction.testnet --depositYocto 1
 
 // Bob claim 3 Near from Carol
 near call $ADD claim_near '{"auction_id": 0}' --accountId bob_auction.testnet 
